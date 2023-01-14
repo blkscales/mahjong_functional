@@ -8,8 +8,8 @@ a {
 
 /* Homepage */
 .Homepage {
-  background-image: url('./assets/Landing-Page.gif');
-  background-size: cover;
+  background-image: url('./assets/LoginPage.gif');
+  background-size: 100% 100%;
   margin: 0;
   height: 100vh;
 }
@@ -20,7 +20,7 @@ a {
 }
 
 .homepage-form {
-  display: flex;
+  display: block;
   justify-content: center;
   margin-top: 50px;
 }
@@ -30,7 +30,7 @@ a {
 }
 
 .homepage-join {
-  display: flex;
+  display: block;
   flex-direction: column;
 }
 
@@ -45,6 +45,58 @@ a {
   background-size: cover;
   margin: 0;
   height: 100vh;
+}
+/* Testing Page*/
+.Testingpage {
+  background-image: url('./assets/TestingPage.jpg');
+  background-size: 100% 100%;
+  margin: 0;
+  height: 100vh;
+}
+
+.testing-menu {
+  position: relative;
+  top: 50px;
+}
+
+.testing-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.testing-column {
+  display: block;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.button-tile {
+    background-color: transparent;
+    border: none;
+    overflow: hidden;
+}
+
+.testing-quit {
+  justify-content: flex-start;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+#Display-Message {
+  font-size: 30px;
+  color:black;
+}
+
+#seven-pair-text {
+  font-size: 30px;
+  color:black;
+}
+
+#thirteen-terminal-text {
+  font-size: 30px;
+  color:black;
 }
 
 /* Game.js Background */
@@ -70,6 +122,14 @@ a {
   margin: 2px;
   cursor: pointer;
 }
+
+/* Mahjong Tiles */
+.Tile {
+  width: 5rem;
+  margin: 2px;
+  cursor: pointer;
+}
+
 
 /* Game.js Top Row */
 .topInfo {

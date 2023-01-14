@@ -18,6 +18,10 @@ const Homepage = () => {
                     <div className='homepage-create'>
                         <Link to={`/play?roomCode=${randomCodeGenerator(5)}`}><button className="game-button orange">CREATE GAME</button></Link>
                     </div>
+					<h1>OR</h1>
+                    <div className='homepage-create'>
+                        <Link to={`/testing_input`}><button className="game-button blue">TEST MAHJONG HAND WAITING TILES</button></Link>
+                    </div>
                 </div>
             </div>
         </div>
