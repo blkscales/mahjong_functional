@@ -20,6 +20,10 @@ const Homepage = () => {
                     </div>
 					<h1>OR</h1>
                     <div className='homepage-create'>
+                        <Link to={`/room_setting`}><button className="game-button red">CREATE MAHJONG ROOM</button></Link>
+                    </div>
+					<h1>OR</h1>
+                    <div className='homepage-create'>
                         <Link to={`/testing_input`}><button className="game-button blue">TEST MAHJONG HAND WAITING TILES</button></Link>
                     </div>
                 </div>

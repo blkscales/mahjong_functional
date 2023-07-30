@@ -66,9 +66,12 @@ a {
 }
 
 .testing-column {
-  display: block;
+  /*display: block;*/
+  flex-direction: column;
   justify-content: center;
   margin-top: 50px;
+  flex-wrap: wrap;
+
 }
 
 .button-tile {
@@ -77,8 +80,10 @@ a {
     overflow: hidden;
 }
 
-.testing-quit {
-  justify-content: flex-start;
+.footer-section {
+  flex-direction: 'row';
+  /*display: flex;*/
+  justify-content: center;
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -125,6 +130,19 @@ a {
 
 /* Mahjong Tiles */
 .Tile {
+  width: 5rem;
+  margin: 2px;
+  cursor: pointer;
+}
+
+.TilePic {
+  width: 5rem;
+  margin: 2px;
+}
+
+
+/* Select drop box in RoomSettingPage*/
+.selectTile {
   width: 5rem;
   margin: 2px;
   cursor: pointer;

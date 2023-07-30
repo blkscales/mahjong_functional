@@ -213,7 +213,7 @@ const Testing = () => {
 						<div id="display-hand" ></div>
                     </div>
 				</div>				
-				<div className='testing-quit'>
+				<div className='footer-section'>
 					<button className="game-button yellow" onClick={() => SortTileArray()}>Sort tile</button>
 					<button className="game-button yellow" onClick={() => removeTileHandler()}>Delete last tile</button>
 					<button className="game-button yellow" onClick={() => removeAllTile()}>Delete all tile</button>

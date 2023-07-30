@@ -16,22 +16,32 @@ app.use(cors())
 io.on('connection', socket => {
     socket.on('join', (payload, callback) => {
         let numberOfUsersInRoom = getUsersInRoom(payload.room).length
-
+		
         const { error, newUser} = addUser({
             id: socket.id,
             name: numberOfUsersInRoom===0 ? 'Player 1' : 'Player 2',
-            room: payload.room
+            room: payload.room,
+			playerNumber: 2,
+			seat: (numberOfUsersInRoom+1)
         })
-
+		
+		console.log(`testing ${payload.playerNum}`)
         if(error)
             return callback(error)
 
         socket.join(newUser.room)
 
         io.to(newUser.room).emit('roomData', {room: newUser.room, users: getUsersInRoom(newUser.room)})
-        socket.emit('currentUserData', {name: newUser.name})
+        socket.emit('currentUserData', {name: newUser.name, seat: newUser.seat})
+		console.log(`A ${numberOfUsersInRoom}+4`)
         callback()
     })
+	
+	socket.on('updateRoomState', roomState => {
+        const user = getUser(socket.id)
+        if(user)
+            io.to(user.room).emit('updateRoomState', roomState)
+    }) //last edit
 
     socket.on('initGameState', gameState => {
         const user = getUser(socket.id)

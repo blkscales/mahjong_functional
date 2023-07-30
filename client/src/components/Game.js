@@ -22,17 +22,18 @@ import gameOverSound from '../assets/sounds/game-over-sound.mp3'
 //DRAW 4 WILD - 600
 
 let socket
-// const ENDPOINT = 'http://localhost:5000'
-const ENDPOINT = 'https://uno-online-multiplayer.herokuapp.com/'
+ const ENDPOINT = 'http://localhost:5000'
+//const ENDPOINT = 'https://uno-online-multiplayer.herokuapp.com/'
 
 const Game = (props) => {
     const data = queryString.parse(props.location.search)
-
+	
     //initialize socket state
     const [room, setRoom] = useState(data.roomCode)
     const [roomFull, setRoomFull] = useState(false)
     const [users, setUsers] = useState([])
     const [currentUser, setCurrentUser] = useState('')
+	const [currentUserSeat, setCurrentUserSeat] = useState('')
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
 
@@ -45,7 +46,7 @@ const Game = (props) => {
         }
         socket = io.connect(ENDPOINT, connectionOptions)
 
-        socket.emit('join', {room: room}, (error) => {
+        socket.emit('join', {room: room, playerNum: 2}, (error) => {
             if(error)
                 setRoomFull(true)
         })
@@ -158,9 +159,11 @@ const Game = (props) => {
             setUsers(users)
         })
 
-        socket.on('currentUserData', ({ name }) => {
+        socket.on('currentUserData', ({ name, seat }) => {
             setCurrentUser(name)
+			setCurrentUserSeat(seat)
         })
+		
 
         socket.on('message', message => {
             setMessages(messages => [ ...messages, message ])
@@ -1272,6 +1275,7 @@ const Game = (props) => {
                         <br />
                         <div className='player1Deck' style={turn === 'Player 1' ? null : {pointerEvents: 'none'}}>
                             <p className='playerDeckText'>Player 1</p>
+							<p className='playerDeckText'>{currentUserSeat}</p>							
                             {player1Deck.map((item, i) => (
                                 <img
                                     key={i}
@@ -1336,6 +1340,7 @@ const Game = (props) => {
                         <br />
                         <div className='player2Deck' style={turn === 'Player 1' ? {pointerEvents: 'none'} : null}>
                             <p className='playerDeckText'>Player 2</p>
+							<p className='playerDeckText'>{currentUserSeat}</p>		
                             {player2Deck.map((item, i) => (
                                 <img
                                     key={i}
