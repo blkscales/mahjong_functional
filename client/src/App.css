@@ -121,6 +121,75 @@ a {
   background-image: url('./assets/backgrounds/bgY.png');
 }
 
+/* Mahjong board*/
+.grid {
+  border: 5px solid rgb(111, 41, 97);
+  display: inline-grid;
+  grid-template-areas:
+    "one one one two two two three three three"
+    "one one one two two two three three three"
+    "one one one two two two three three three"
+    "four four four five five five six six six"
+    "four four four five five five six six six"
+    "four four four five five five six six six"
+    "seven seven seven eight eight eight nine nine nine"
+    "seven seven seven eight eight eight nine nine nine"
+    "seven seven seven eight eight eight nine nine nine";
+  gap: 5px;
+  grid-template-columns: repeat(9, 1fr);
+  inline-size: 750px;
+}
+
+.grid > * {
+  background-color: rgba(111, 41, 97, 0.4);
+  border-radius: 5px;
+  padding: 5px;
+  aspect-ratio: 1;
+}
+
+.one {
+  grid-area: one;
+  transform: rotate(180deg);
+}
+
+.two {
+  grid-area: two;
+  transform: rotate(180deg);
+}
+
+.three {
+  grid-area: three;
+  transform: rotate(270deg);
+}
+
+.four {
+  grid-area: four;
+  transform: rotate(90deg);
+}
+
+.five {
+  grid-area: five;
+}
+
+.six {
+  grid-area: six;
+  transform: rotate(270deg);
+}
+
+.seven {
+  grid-area: seven;
+  transform: rotate(90deg);
+}
+
+.eight {
+  grid-area: eight;
+}
+
+.nine {
+  grid-area: nine;
+}
+
+
 /* UNO Cards */
 .Card {
   width: 6rem;
@@ -248,6 +317,11 @@ a {
 .game-button:hover {
   top:2px;
   box-shadow: 0 4px 0 #266b91, 0 6px 1px 1px rgba(0,0,0,.3), 0 8px 0 5px #12517d, 0 10px 0 5px #1a6b9a, 0 13px 0 5px #0c405e, 0 13px 1px 6px rgba(0,0,0,.3);
+}
+
+.game-button:focus {
+  top:4px;
+  box-shadow: 0 2px 0 #266b91, 0 6px 1px 1px rgba(0,0,0,.3), 0 6px 0 5px #12517d, 0 8px 0 5px #1a6b9a, 0 11px 0 5px #0c405e, 0 11px 1px 6px rgba(0,0,0,.3);
 }
 
 .game-button::before {

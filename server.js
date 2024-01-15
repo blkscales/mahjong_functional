@@ -3,6 +3,7 @@ const socketio = require('socket.io')
 const http = require('http')
 const cors = require('cors')
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users')
+const { addRoomData, getRoomData, shuffleTileStack, initPlayerHand } = require('./roomData')
 const path = require('path')
 
 const PORT = process.env.PORT || 5000
@@ -19,11 +20,18 @@ io.on('connection', socket => {
 		
         const { error, newUser} = addUser({
             id: socket.id,
-            name: numberOfUsersInRoom===0 ? 'Player 1' : 'Player 2',
+            name: `PLAYER ${numberOfUsersInRoom}`,
             room: payload.room,
 			playerNumber: 2,
 			seat: (numberOfUsersInRoom+1)
         })
+		
+		const { roomData } = addRoomData({
+			newRoomFlag: numberOfUsersInRoom === 0,
+			roomID: payload.room,
+			roomSettings: payload.roomSettings,
+			tileStack: payload.tileStack
+		})
 		
 		console.log(`testing ${payload.playerNum}`)
         if(error)
@@ -37,17 +45,46 @@ io.on('connection', socket => {
         callback()
     })
 	
+	socket.on("broadcastReadyState", readyState => {
+		const user = getUser(socket.id)
+		if(user)
+			io.to(user.room).emit("updateReadyState", readyState)
+	})
+	
+	socket.on("updateStartState", startTrigger => {
+		const user = getUser(socket.id)
+		if(user)
+			io.to(user.room).emit("updateStartState", startTrigger)
+	})
+	
 	socket.on('updateRoomState', roomState => {
         const user = getUser(socket.id)
         if(user)
             io.to(user.room).emit('updateRoomState', roomState)
     }) //last edit
 
-    socket.on('initGameState', gameState => {
-        const user = getUser(socket.id)
-        if(user)
-            io.to(user.room).emit('initGameState', gameState)
-    })
+    socket.on("initGameState", (gameState) => {
+		const user = getUser(socket.id);
+		const roomData = getRoomData(user.room);
+		shuffleTileStack(user.room);
+		initPlayerHand(user.room);
+		if (user) 
+			io.to(user.room).emit("initGameState", gameState);
+	})
+	
+	socket.on("initPalyerTablePos", (tablePos) => {
+    const tablePosArr = shuffleArray([1, 2, 3, 4]);
+    for (let i = 0; i < 4; i++) 
+		tablePos.userTablePos.push(tablePosArr[i]);
+
+    const user = getUser(socket.id);
+    tablePos.currentUserTablePos = tablePos.userTablePos[user.seat - 1];
+    if (user)
+      io.to(user.room).emit("initPalyerTablePos", {
+        userTablePos: tablePos.userTablePos,
+        currentUserTablePos: tablePos.currentUserTablePos,
+      })
+	})
 
     socket.on('updateGameState', gameState => {
         const user = getUser(socket.id)
@@ -57,14 +94,20 @@ io.on('connection', socket => {
 
     socket.on('sendMessage', (payload, callback) => {
         const user = getUser(socket.id)
-        io.to(user.room).emit('message', {user: user.name, text: payload.message})
+        io.to(user.room).emit('message', {user: user.name,seat: user.seat, text: payload.message})
         callback()
     })
 
     socket.on('disconnect', () => {
         const user = removeUser(socket.id)
-        if(user)
-            io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
+		const userList = getUsersInRoom(user.room)
+        if(user) {
+            io.to(user.room).emit('roomData', {room: user.room, users: userList})
+			for (let i=0;i<getUsersInRoom(user.room).length;i++) {  
+				const curUserSocket = io.sockets.sockets.get(userList[i].id);
+				curUserSocket.emit("currentUserData", { name: userList[i].name, seat: userList[i].seat });
+			}
+		}
     })
 })
 

@@ -3,34 +3,55 @@ import { Link } from 'react-router-dom'
 import { Route } from 'react-router-dom'
 import TestingResultPage from './TestingResultPage'
 //import testing_img from 'C:/Users/blksc/Documents/GitHub/mahjong_dev/client/src/assets/TestingPage.gif'
-import SortedTileArr from '../utils/sortingMahjongTile'
+import TileMap from "../utils/MahjongTilesMap";
+import {SortedTileArr, ConvertTileToNum} from '../utils/sortingMahjongTile'
 
 var tileArr = [];
+var tileKindArr = [0,0,0,0,0,0];
+const tileArrProp = {
+	tileArr: tileArr,
+	tileKindArr: tileKindArr,
+  };
 
 const addTileHandler = (tile) => {
 	
 	if(tileArr.length < 16)
+	{
+		if(TileMap.get(tile) < 50)
+			tileKindArr[Math.floor(TileMap.get(tile)/10)-1]++;
+		else
+			tileKindArr[5]++;
 		tileArr.push(tile);
+	}
 	else
 		window.alert("Tiles should be fewer than 16.");
 	
 	displayTileArr();
-	//console.log(tileArr);
+	console.log(tileArr);
+	console.log(tileKindArr);
 }
 
 const removeTileHandler = () => {
 	
 	if(tileArr.length > 0)
+	{
+		if(TileMap.get(tileArr[tileArr.length-1]) < 50)
+			tileKindArr[Math.floor(TileMap.get(tileArr[tileArr.length-1])/10)-1]--;
+		else
+			tileKindArr[5]--;
 		tileArr.pop();
+	}
 	else
 		window.alert("No tiles can be removed.");
 	
 	displayTileArr();
-	//console.log(tileArr);
+	console.log(tileArr);
+	console.log(tileKindArr);
 }
 
 const removeAllTile = () => {
 	tileArr.length = 0;
+	tileKindArr = [0,0,0,0,0,0];
 	displayTileArr();
 }
 
@@ -206,6 +227,18 @@ const Testing = () => {
 						<button className='button-tile'><img className='Tile' onClick={() => addTileHandler('Functional_Joker')}
                             src={require(`../assets/mahjong_tiles/Functional_Joker.png`).default} />
 						</button>
+						<button className='button-tile'><img className='Tile' onClick={() => addTileHandler('Functional_Terminal')}
+                            src={require(`../assets/mahjong_tiles/Functional_Terminal.png`).default} />
+						</button>
+						<button className='button-tile'><img className='Tile' onClick={() => addTileHandler('Functional_258')}
+                            src={require(`../assets/mahjong_tiles/Functional_258.png`).default} />
+						</button>
+						<button className='button-tile'><img className='Tile' onClick={() => addTileHandler('Functional_37')}
+                            src={require(`../assets/mahjong_tiles/Functional_37.png`).default} />
+						</button>
+						<button className='button-tile'><img className='Tile' onClick={() => addTileHandler('Functional_46')}
+                            src={require(`../assets/mahjong_tiles/Functional_46.png`).default} />
+						</button>
 					</div>		
 					<p id='Display-Message'> Your Hand :</p>
 					<div className='testing-row' >
@@ -217,7 +250,7 @@ const Testing = () => {
 					<button className="game-button yellow" onClick={() => SortTileArray()}>Sort tile</button>
 					<button className="game-button yellow" onClick={() => removeTileHandler()}>Delete last tile</button>
 					<button className="game-button yellow" onClick={() => removeAllTile()}>Delete all tile</button>
-					<Link to={{pathname: "/test_result", state: tileArr }}><button className="game-button yellow" >Confirm</button></Link>
+					<Link to={{pathname: "/test_result", state: tileArrProp }}><button className="game-button yellow" >Confirm</button></Link>
 					<a href='/'><button className="game-button purple">QUIT</button></a>	
 				</div>				
             </div>			

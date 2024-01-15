@@ -4,6 +4,7 @@ import randomCodeGenerator from '../utils/randomCodeGenerator'
 
 const Homepage = () => {
     const [roomCode, setRoomCode] = useState('')
+	const [name, setName] = useState('')
 
     return (
         <div className='Homepage'>
@@ -20,7 +21,8 @@ const Homepage = () => {
                     </div>
 					<h1>OR</h1>
                     <div className='homepage-create'>
-                        <Link to={`/room_setting`}><button className="game-button red">CREATE MAHJONG ROOM</button></Link>
+						<input type="text" placeholder="Name" onChange={(event) => setName(event.target.value)}/>
+                        <Link to={{pathname: "/room_setting", state: name }}><button className="game-button red">CREATE/JOIN MAHJONG ROOM</button></Link>
                     </div>
 					<h1>OR</h1>
                     <div className='homepage-create'>

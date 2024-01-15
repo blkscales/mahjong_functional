@@ -13,8 +13,12 @@
 const removeUser = id => {
     const removeIndex = users.findIndex(user => user.id === id)
 
-    if(removeIndex!==-1)
+    if(removeIndex!==-1) {
+		for(let i=(removeIndex+1); i<users.length;i++) {
+			users[i].seat--;
+		}
         return users.splice(removeIndex, 1)[0]
+	}
 }
 
 const getUser = id => {

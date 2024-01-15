@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useLocation, useSearchParams } from "react-router-dom";
 import PACK_OF_CARDS from '../utils/packOfCards'
 import shuffleArray from '../utils/shuffleArray'
+import TileMap from '../utils/MahjongTilesMap'
 import io from 'socket.io-client'
 import queryString from 'query-string'
 import Spinner from './Spinner'
@@ -30,18 +31,104 @@ let socket
 
 const MahjongGame = (props) => {
     const data = queryString.parse(props.location.search)
-
     //initialize socket state
     const [room, setRoom] = useState(data.roomCode)
     const [roomFull, setRoomFull] = useState(false)
+	const [roomState, setRoomState] = useState("waiting")
     const [users, setUsers] = useState([])
     const [currentUser, setCurrentUser] = useState('')
 	const [currentUserSeat, setCurrentUserSeat] = useState('')
+	const [userTablePos, setUserTablePos] = useState([])
+	const [currentUserTablePos, setCurrentUserTablePos] = useState('')
+	const [readyState, setReadyState] = useState(new Array(props.location.state.playerNum).fill(false))
+	const [readyStateText, setReadyStateText] = useState("Ready")
+	const [startTrigger, setStartTrigger] = useState(false)
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
-	
-	console.log(props.location)
+	const tileSetModel = [];
+	for (let i = 0; i < props.location.state.tileSetForGame.length; i++) {
+		for (let j = 0; j < props.location.state.tileSetForGame[i]; j++) {
+			if (i < 10) //0 - 9 pin
+				tileSetModel.push(i + 11);
+			else if (i < 18) //10 - 17 sou
+				tileSetModel.push(i + 12);
+			else if (i < 27) //18 - 26 man
+				tileSetModel.push(i + 13);
+			else if (i < 34) //27 - 33 word terminals
+				tileSetModel.push(i + 14);
+			else if (i < 42) //34 - 41
+				tileSetModel.push(i + 17);
+			else  //functional tiles
+				tileSetModel.push(i + 19);
+		}
+	}
 
+	console.log(tileSetModel);
+	
+	//console.log(props.location);
+	console.log(users);
+	const displayUserBasicInfo = (userList) => {
+		document.getElementById("container").innerHTML = null; //initialize
+		for (let i = 0; i < userList.length; i++) {
+		document.getElementById("container").innerHTML +=
+			"<p>" + userList[i].name + "</p>";
+		}
+		console.log(userList);
+	}
+	
+	const cleanUpReadyStateDiv = () => {
+		var readyBut=document.getElementById("readyButton");
+		if(readyBut.parentNode !== null)
+			readyBut.parentNode.removeChild(readyBut);
+		var startBut=document.getElementById("startButton");
+		if(startBut.parentNode !== null)
+			startBut.parentNode.removeChild(startBut);
+	}
+	
+	const showDiscardedTile = (PosNum, tile) => {
+		var img = document.createElement("img");
+		var tileName = [...TileMap].find(([key, val]) => val == tile)[0];
+		console.log(tileName);
+		img.src = require("../assets/mahjong_tiles/" + tileName + ".png").default;
+		img.style.width = "33px";
+		var relativePos = currentUserTablePos - PosNum;
+		var grid = -1; //grid region
+		if ( relativePos === 0 && document.getElementById(`opponent-discard8`).childElementCount < 35)
+		  grid = 8;
+		else if ( relativePos === 0 && document.getElementById(`opponent-discard8`).childElementCount > 34)
+		  grid = 9;
+		else if ((relativePos === 1 || relativePos === -3) && document.getElementById(`opponent-discard6`).childElementCount < 35)
+		  grid = 6;
+		else if ((relativePos === 1 || relativePos === -3) && document.getElementById(`opponent-discard6`).childElementCount > 34)
+		  grid = 3;
+		else if ((relativePos === -2 || relativePos === 2) && document.getElementById(`opponent-discard2`).childElementCount < 35)
+		  grid = 2;
+		else if ((relativePos === -2 || relativePos === 2) && document.getElementById(`opponent-discard2`).childElementCount > 34)
+		  grid = 1;
+		else if ((relativePos === -1 || relativePos === 3) && document.getElementById(`opponent-discard4`).childElementCount < 35)
+		  grid = 4;
+		else if ((relativePos === -1 || relativePos === 3) && document.getElementById(`opponent-discard4`).childElementCount > 34)
+		  grid = 7;
+		else 
+			grid = -1; //error
+
+		if (
+		  document.getElementById(`opponent-discard${grid}`).childElementCount %
+			7 ===
+		  5
+		) {
+		  img.style.width = "33px";
+		  img.style.transform = "rotate(270deg)";
+		}
+
+		document.getElementById(`opponent-discard${grid}`).appendChild(img);
+		if (
+		  document.getElementById(`opponent-discard${grid}`).childElementCount %
+			7 ===
+		  6
+		)
+		  document.getElementById(`opponent-discard${grid}`).innerHTML += "<br />";
+	}	
 	
 
     useEffect(() => {
@@ -53,7 +140,7 @@ const MahjongGame = (props) => {
         }
         socket = io.connect(ENDPOINT, connectionOptions)
 		
-        socket.emit('join', {room: room, playerNum: props.location.state.playerNum}, (error) => {
+        socket.emit('join', {room: room, roomSettings: props.location.state, tileStack: tileSetModel }, (error) => {
 			
             if(error)
                 setRoomFull(true)
@@ -77,7 +164,7 @@ const MahjongGame = (props) => {
     const [currentNumber, setCurrentNumber] = useState('')
     const [playedCardsPile, setPlayedCardsPile] = useState([])
     const [drawCardPile, setDrawCardPile] = useState([])
-
+	
     const [isChatBoxHidden, setChatBoxHidden] = useState(true)
     const [isUnoButtonPressed, setUnoButtonPressed] = useState(false)
     const [isSoundMuted, setSoundMuted] = useState(false)
@@ -138,6 +225,24 @@ const MahjongGame = (props) => {
     }, [])
 
     useEffect(() => {
+		socket.on("updateReadyState", ({readyState}) => {
+			setReadyState(readyState)
+			console.log(readyState)
+		})
+		
+		socket.on("updateStartState", ({startTrigger}) => {
+			setStartTrigger(startTrigger)
+			console.log(startTrigger)
+		})
+		
+		socket.on("initPalyerTablePos", ({ userTablePos, currentUserTablePos }) => {
+			setUserTablePos(userTablePos)
+			setCurrentUserTablePos(currentUserTablePos)
+			console.log(userTablePos)
+			console.log(currentUserTablePos)
+		})
+
+		
         socket.on('initGameState', ({ gameOver, turn, player1Deck, player2Deck, currentColor, currentNumber, playedCardsPile, drawCardPile }) => {
             setGameOver(gameOver)
             setTurn(turn)
@@ -165,6 +270,8 @@ const MahjongGame = (props) => {
 
         socket.on("roomData", ({ users }) => {
             setUsers(users)
+			displayUserBasicInfo(users);
+			setReadyState(readyState.fill(false));
         })
 
         socket.on('currentUserData', ({ name, seat }) => {
@@ -188,6 +295,7 @@ const MahjongGame = (props) => {
     const checkWinner = (arr, player) => {
         return arr.length === 1 ? player : ''
     }
+	
 
     const toggleChatBox = () => {
         const chatBody = document.querySelector('.chat-body')
@@ -200,6 +308,33 @@ const MahjongGame = (props) => {
             setChatBoxHidden(true)
         }
     }
+	
+	const toggle = () => {
+		if (readyStateText === "Ready") 
+			setReadyStateText("Is Ready");
+		else 
+			setReadyStateText("Ready");
+		
+		readyState[currentUserSeat-1] = !readyState[currentUserSeat-1];
+		console.log(readyState);
+		socket.emit("broadcastReadyState", { readyState:readyState }, () => {
+		setReadyState(readyState);
+		})
+	}
+	
+	const initiaiteGame = () => {
+		cleanUpReadyStateDiv();
+		setStartTrigger(true);
+		socket.emit("updateStartState", { startTrigger: true }, () => {
+			setStartTrigger(startTrigger);
+		})
+		
+		socket.emit("initPalyerTablePos",{ userTablePos: userTablePos, currentUserTablePos: currentUserTablePos },() => {
+			setUserTablePos([]);
+			setCurrentUserTablePos(0);
+		})
+	}
+	
 
     const sendMessage= (event) => {
         event.preventDefault()
@@ -1242,11 +1377,62 @@ const MahjongGame = (props) => {
                             setMusicMuted(!isMusicMuted)
                         }}>{isMusicMuted ? <span className="material-icons">music_off</span> : <span className="material-icons">music_note</span>}</button>
                     </span>
+					<a href="/"><button className="game-button red">QUIT</button></a>
                 </div>
 
-                
-            <a href='/'><button className="game-button red">QUIT</button></a>
-        </div>
+                <div id="container"></div>
+				<button className="game-button" id="readyButton" onClick={() => { toggle()}}>{readyStateText}</button>
+				<button className="game-button" id="startButton" onClick={() => { initiaiteGame()}}>
+					Start
+				</button>
+				<div id="gameContainer" >
+					{startTrigger ? 
+						<div>
+							<div id="display-hand-opponent1"></div>
+							<button onClick={() => { showDiscardedTile(1, 11)}}> discard1 </button>
+							<div class="grid">
+								<div class="one" id="opponent-discard1" align="left"></div>
+								<div class="two" id="opponent-discard2" align="left"></div>
+								<div class="three" id="opponent-discard3" align="left"></div>
+								<div class="four" id="opponent-discard4" align="left"></div>
+								<div class="five" id="center" align="left">5</div>
+								<div class="six" id="opponent-discard6" align="left"></div>
+								<div class="seven" id="opponent-discard7" align="left"></div>
+								<div class="eight" id="opponent-discard8" align="left"></div>
+								<div class="nine" id="opponent-discard9" align="left"></div>
+							</div>
+						</div>
+						: 
+						<p>Waiting to Start</p>
+					}
+				</div>
+				<div className="chatBoxWrapper">
+					<div className="chat-box chat-box-player2">
+						<div className="chat-head">
+							<h2>Chat Box</h2>
+								{!isChatBoxHidden ? (
+								<span onClick={toggleChatBox} class="material-icons"> keyboard_arrow_down </span>) : (
+								<span onClick={toggleChatBox} class="material-icons">
+									keyboard_arrow_up
+								</span>)}
+						</div>
+						<div className="chat-body">
+							<div className="msg-insert">
+								{messages.map((msg) => {console.log(msg);
+								if (msg.seat !== currentUserSeat)
+									return <div className="msg-receive">{msg.text}</div>;
+								else if (msg.seat === currentUserSeat)
+									return <div className="msg-send">{msg.text}</div>;
+								})}
+							</div>
+						<div className="chat-text">
+							<input type="text" placeholder="Type a message..." value={message} onChange={(event) => setMessage(event.target.value)} 
+								onKeyPress={(event) => event.key === "Enter" && sendMessage(event)}/>
+						</div>
+						</div>
+					</div>
+				</div>
+		</div>
     )
 }
 
